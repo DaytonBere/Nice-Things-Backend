@@ -1,0 +1,5 @@
+.env
+.DS_Store
+
+# Removes executible
+Nice-Things-Backend
