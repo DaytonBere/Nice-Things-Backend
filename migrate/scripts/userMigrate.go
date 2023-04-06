@@ -11,8 +11,14 @@ func init () {
 	initializers.ConnectToDB()
 }
 
-func UserMigrate () {
-	log.Println("Migrating Comment table...")
+func UserMigrateUp () {
+	log.Println("Migrating User table...")
 	initializers.DB.AutoMigrate(&models.User{})
-	log.Println("Done migrating Comment table")
+	log.Println("Done migrating User table")
+}
+
+func UserMigrateDown () {
+	log.Println("Dropping User table...")
+	initializers.DB.Migrator().DropTable(&models.User{})
+	log.Println("Done dropping User table")
 }

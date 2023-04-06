@@ -11,8 +11,14 @@ func init () {
 	initializers.ConnectToDB()
 }
 
-func NiceThingMigrate () {
-	log.Println("Migrating Comment table...")
+func NiceThingMigrateUp () {
+	log.Println("Migrating NiceThing table...")
 	initializers.DB.AutoMigrate(&models.NiceThing{})
-	log.Println("Done migrating Comment table")
+	log.Println("Done migrating NiceThing table")
+}
+
+func NiceThingMigrateDown () {
+	log.Println("Dropping NiceThing table...")
+	initializers.DB.Migrator().DropTable(&models.NiceThing{})
+	log.Println("Done dropping NiceThing table")
 }

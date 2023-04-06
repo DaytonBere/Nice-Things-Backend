@@ -8,7 +8,7 @@ This project is the backend for the overarching nice things website. It utilizes
 
 ```
 /api
-├── /users
+├── /user
 │   ├── /signUp
 │   ├── /signIn
 │   ├── /signOut
