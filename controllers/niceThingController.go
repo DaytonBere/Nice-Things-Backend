@@ -30,6 +30,14 @@ func CreateNiceThing (c *gin.Context) {
 		return
 	}
 
+	if body.Receiver == 1 || currentUser.ID == 1 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Error": "Attempting to send to or from super admin",
+		})
+
+		return
+	}
+
 	var niceThing models.NiceThing
 	initializers.DB.Where("Sender = ? AND Receiver = ?", currentUser.ID, body.Receiver).Find(&niceThing)
 
@@ -82,6 +90,15 @@ func EditNiceThing (c *gin.Context) {
 
 		return
 	}
+
+	if body.Receiver == 1 || currentUser.ID == 1 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Error": "Attempting to send to or from super admin",
+		})
+
+		return
+	}
+
 
 	var niceThing models.NiceThing
 	initializers.DB.Where("Sender = ? AND Receiver = ?", currentUser.ID, body.Receiver).Find(&niceThing)

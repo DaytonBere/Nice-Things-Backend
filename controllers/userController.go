@@ -201,7 +201,63 @@ func ChangePassword (c *gin.Context) {
 }
 
 func Validate (c *gin.Context) {
+	userInf, exist := c.Get("user")
+
+	var user models.User = userInf.(models.User)
+
+	if !exist {
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "I am logged in",
+		"user": user,
 	})
+}
+
+func GetUsers (c *gin.Context) {
+	userInf, exist := c.Get("user")
+
+	var currentUser models.User = userInf.(models.User)
+
+	if !exist {
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+
+	type RetUser struct {
+		ID int
+		FullName string
+		SentNiceThing bool
+	}
+
+	users := []RetUser{}
+
+	var allUsers []models.User
+	initializers.DB.Find(&allUsers)
+
+	for _, user := range allUsers {
+		if user.ID == 1{
+			continue
+		}
+
+		var niceThing models.NiceThing
+		initializers.DB.Where("Sender = ? AND Receiver = ?", currentUser.ID, user.ID).Find(&niceThing)
+
+		retUserInfo := RetUser{
+			ID: int(user.ID),
+			FullName: user.FirstName + " " + user.LastName,
+			SentNiceThing: niceThing.ID != 0,
+		}
+
+		users = append(users, retUserInfo)
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
+func GetUsersTest (c *gin.Context) {
+	var allUsers []models.User
+	initializers.DB.Find(&allUsers)
+
+	c.JSON(http.StatusOK, allUsers)
 }

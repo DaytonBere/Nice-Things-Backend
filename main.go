@@ -19,6 +19,8 @@ func main() {
 	route.POST("/api/user/signUp", middleware.RequireAuth, controllers.SignUp)
 	route.POST("/api/user/signIn", controllers.SignIn)
 	route.POST("/api/user/signOut", controllers.SignOut)
+	route.GET("/api/user/getUsers", middleware.RequireAuth, controllers.GetUsers)
+	route.GET("/api/user/getUsersTest", controllers.GetUsersTest)
 	route.PATCH("/api/user/changePassword", middleware.RequireAuth, controllers.ChangePassword)
 	route.GET("/api/user/validate", middleware.RequireAuth, controllers.Validate)
 
