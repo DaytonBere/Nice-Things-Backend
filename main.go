@@ -16,11 +16,14 @@ func init() {
 func main() {
 	route := gin.Default()
 
-	route.POST("/api/user/signUp", controllers.SignUp)
+	route.POST("/api/user/signUp", middleware.RequireAuth, controllers.SignUp)
 	route.POST("/api/user/signIn", controllers.SignIn)
 	route.POST("/api/user/signOut", controllers.SignOut)
 	route.PATCH("/api/user/changePassword", middleware.RequireAuth, controllers.ChangePassword)
 	route.GET("/api/user/validate", middleware.RequireAuth, controllers.Validate)
+
+	route.POST("/api/niceThings/createNiceThing",  middleware.RequireAuth, controllers.CreateNiceThing)
+	route.PATCH("/api/niceThings/editNiceThing",  middleware.RequireAuth, controllers.EditNiceThing)
 
 	route.Run()
 }

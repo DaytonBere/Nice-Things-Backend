@@ -14,6 +14,15 @@ import (
 )
 
 func SignUp (c *gin.Context) {
+
+	userInf, exist := c.Get("user")
+
+	var currentUser models.User = userInf.(models.User)
+
+	if !exist || !currentUser.Admin {
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+
 	// Get email, first name, last name, and if they are an admin
 
 	var body struct {
@@ -46,7 +55,6 @@ func SignUp (c *gin.Context) {
 	}
 
 	// Create User
-
 	user := models.User{
 		Email: body.Email, 
 		FirstName: body.FirstName, 
