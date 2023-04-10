@@ -137,7 +137,11 @@ func SignIn (c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("Authorization", tokenString, 3600 * 24 * 30, "", "", false, true)
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{
+		"_id": user.ID,
+		"email": user.Email,
+		"token": tokenString,
+	})
 }	
 
 func SignOut (c *gin.Context) {
