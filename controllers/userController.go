@@ -136,7 +136,7 @@ func SignIn (c *gin.Context) {
 
 	// send it back
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Authorization", tokenString, 3600 * 24 * 30, "" , "", true, true)
+	c.SetCookie("Authorization", tokenString, 3600 * 24 * 30, "/" , "https://nice-things-backend-test.onrender.com", true, true)
 
 	c.JSON(http.StatusOK, gin.H{
 		"ID": user.ID,
