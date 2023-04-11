@@ -173,7 +173,8 @@ func EditNiceThing (c *gin.Context) {
 
 func GetUserNiceThings (c *gin.Context) {
 
-	fmt.Println("HERE")
+	fmt.Println(c)
+
 	userInf, exist := c.Get("user")
 
 	var _ models.User = userInf.(models.User)
@@ -204,8 +205,12 @@ func GetUserNiceThings (c *gin.Context) {
 	retNiceThings := []RetNiceThing{}
 
 	initializers.DB.Find(&allNiceThings)
+	fmt.Println("Number of nice things found:", len(allNiceThings))
 
 	for _, niceThing := range allNiceThings {
+		fmt.Printf("niceThing.Receiver = %v, type = %T\n", niceThing.Receiver, niceThing.Receiver)
+		fmt.Printf("body.Receiver = %v, type = %T\n", body.Receiver, body.Receiver)
+		fmt.Println()
 		if niceThing.Receiver == body.Receiver {
 			var user models.User
 			initializers.DB.Where("ID = ?", niceThing.Sender).Find(&user)
@@ -220,6 +225,7 @@ func GetUserNiceThings (c *gin.Context) {
 		}
 	}
 	
+	fmt.Println("retNiceThings:", retNiceThings)
 	c.JSON(200, retNiceThings)	
 	return
 }
