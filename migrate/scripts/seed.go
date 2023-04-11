@@ -27,7 +27,7 @@ func Seed () {
 	user := models.User{
 		Email: "assistdirectorstamu@gmail.com", 
 		FirstName: "ASSIST", 
-		LastName: "ASSIST", 
+		LastName: "ADMIN", 
 		Password: string(hash), 
 		Admin: true,
 	}

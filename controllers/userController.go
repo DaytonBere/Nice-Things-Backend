@@ -77,6 +77,7 @@ func SignUp (c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"Default Password": password,
 	})
+	return
 }
 
 func SignIn (c *gin.Context) {
@@ -138,10 +139,13 @@ func SignIn (c *gin.Context) {
 	c.SetCookie("Authorization", tokenString, 3600 * 24 * 30, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
-		"_id": user.ID,
-		"email": user.Email,
-		"token": tokenString,
+		"ID": user.ID,
+		"Email": user.Email,
+		"Token": tokenString,
+		"Admin": user.Admin,
+		"Name": user.FirstName + " " + user.LastName,
 	})
+	return
 }	
 
 func SignOut (c *gin.Context) {
@@ -153,6 +157,7 @@ func SignOut (c *gin.Context) {
 
 	c.SetCookie("Authorization", "", -1, "", "", false, true)
 	c.JSON(http.StatusOK, gin.H{})
+	return
 }
 
 func ChangePassword (c *gin.Context) {
@@ -202,6 +207,7 @@ func ChangePassword (c *gin.Context) {
 	initializers.DB.Model(&user).Update("Password", string(hash))
 
 	c.JSON(200, gin.H{})
+	return
 }
 
 func Validate (c *gin.Context) {
@@ -217,51 +223,5 @@ func Validate (c *gin.Context) {
 		"message": "I am logged in",
 		"user": user,
 	})
-}
-
-func GetUsers (c *gin.Context) {
-	userInf, exist := c.Get("user")
-
-	var currentUser models.User = userInf.(models.User)
-
-	if !exist {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-
-	type RetUser struct {
-		ID int
-		FullName string
-		SentNiceThing bool
-	}
-
-	users := []RetUser{}
-
-	var allUsers []models.User
-	initializers.DB.Find(&allUsers)
-
-	for _, user := range allUsers {
-		if user.ID == 1{
-			continue
-		}
-
-		var niceThing models.NiceThing
-		initializers.DB.Where("Sender = ? AND Receiver = ?", currentUser.ID, user.ID).Find(&niceThing)
-
-		retUserInfo := RetUser{
-			ID: int(user.ID),
-			FullName: user.FirstName + " " + user.LastName,
-			SentNiceThing: niceThing.ID != 0,
-		}
-
-		users = append(users, retUserInfo)
-	}
-
-	c.JSON(http.StatusOK, users)
-}
-
-func GetUsersTest (c *gin.Context) {
-	var allUsers []models.User
-	initializers.DB.Find(&allUsers)
-
-	c.JSON(http.StatusOK, allUsers)
+	return
 }
