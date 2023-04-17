@@ -3,6 +3,7 @@ package controllers
 import (
 	"Nice-Things-Backend/initializers"
 	"Nice-Things-Backend/models"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -14,15 +15,6 @@ import (
 )
 
 func SignUp (c *gin.Context) {
-
-	userInf, exist := c.Get("user")
-
-	var currentUser models.User = userInf.(models.User)
-
-	if !exist || !currentUser.Admin {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-
 	// Get email, first name, last name, and if they are an admin
 
 	var body struct {
@@ -30,6 +22,7 @@ func SignUp (c *gin.Context) {
 		FirstName string
 		LastName string
 		Admin bool
+		Sender int
 	}
 
 	if c.Bind(&body) != nil {
@@ -38,6 +31,17 @@ func SignUp (c *gin.Context) {
 		})
 
 		return
+	}
+
+	fmt.Printf("SIGNUP BODY: %+v\n", body)
+
+	var currentUser models.User
+	initializers.DB.First(&currentUser, "id = ?", body.Sender)
+
+	if currentUser.ID != 1 {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"Error": "Not admin",
+		})
 	}
 
 	// Create password = lower(LastName + FirstName)
@@ -77,7 +81,6 @@ func SignUp (c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"Default Password": password,
 	})
-	return
 }
 
 func SignIn (c *gin.Context) {
@@ -145,26 +148,15 @@ func SignIn (c *gin.Context) {
 		"Admin": user.Admin,
 		"Name": user.FirstName + " " + user.LastName,
 	})
-	return
 }	
 
-func SignOut (c *gin.Context) {
-	_, err := c.Cookie("Authorization")
-
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-
-	c.SetCookie("Authorization", "", -1, "", "", false, true)
-	c.JSON(http.StatusOK, gin.H{})
-	return
-}
 
 func ChangePassword (c *gin.Context) {
 
 	var body struct {
 		OldPassword string
 		NewPassword string
+		Sender int
 	}
 
 	if c.Bind(&body) != nil {
@@ -175,16 +167,14 @@ func ChangePassword (c *gin.Context) {
 		return
 	}
 
-	userInf, exist := c.Get("user")
+	fmt.Printf("ChangePassword BODY: %+v\n", body)
 
-	var user models.User = userInf.(models.User)
-
-	if !exist {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
+	// Look up requested user
+	var currentUser models.User
+	initializers.DB.First(&currentUser, "id = ?", body.Sender)
 
 
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.OldPassword))
+	err := bcrypt.CompareHashAndPassword([]byte(currentUser.Password), []byte(body.OldPassword))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -204,24 +194,7 @@ func ChangePassword (c *gin.Context) {
 		return
 	}
 
-	initializers.DB.Model(&user).Update("Password", string(hash))
+	initializers.DB.Model(&currentUser).Update("Password", string(hash))
 
 	c.JSON(200, gin.H{})
-	return
-}
-
-func Validate (c *gin.Context) {
-	userInf, exist := c.Get("user")
-
-	var user models.User = userInf.(models.User)
-
-	if !exist {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "I am logged in",
-		"user": user,
-	})
-	return
 }

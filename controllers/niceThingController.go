@@ -10,13 +10,25 @@ import (
 )
 
 func GetUsers (c *gin.Context) {
-	userInf, exist := c.Get("user")
 
-	var currentUser models.User = userInf.(models.User)
-
-	if !exist {
-		c.AbortWithStatus(http.StatusUnauthorized)
+	var body struct {
+		Sender int
 	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Error": "Failed to read body",
+		})
+
+		return
+	}
+
+	fmt.Printf("Get Users BODY: %+v\n", body)
+
+
+	// Look up requested user
+	var currentUser models.User
+	initializers.DB.First(&currentUser, "id = ?", body.Sender)
 
 
 	type RetUser struct {
@@ -50,29 +62,13 @@ func GetUsers (c *gin.Context) {
 
 
 	c.JSON(http.StatusOK, users)
-	return
-}
-
-func GetUsersTest (c *gin.Context) {
-	var allUsers []models.User
-	initializers.DB.Find(&allUsers)
-
-	c.JSON(http.StatusOK, allUsers)
-	return
 }
 
 func CreateNiceThing (c *gin.Context) {
-	userInf, exist := c.Get("user")
-
-	var currentUser models.User = userInf.(models.User)
-
-	if !exist {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-
 	var body struct {
 		Receiver int
 		Body string
+		Sender int
 	}
 
 	if c.Bind(&body) != nil {
@@ -82,6 +78,14 @@ func CreateNiceThing (c *gin.Context) {
 
 		return
 	}
+
+	fmt.Printf("CREATENICETHING BODY: %+v\n", body)
+
+
+	// Look up requested user
+	var currentUser models.User
+	initializers.DB.First(&currentUser, "id = ?", body.Sender)
+
 
 	if body.Receiver == 1 || currentUser.ID == 1 {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -119,77 +123,33 @@ func CreateNiceThing (c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
-	return
 }
 
-func EditNiceThing (c *gin.Context) {
-	userInf, exist := c.Get("user")
-
-	var currentUser models.User = userInf.(models.User)
-
-	if !exist {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-
-
-	var body struct {
-		Receiver int
-		Body string
-	}
-
-	if c.Bind(&body) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Error": "Failed to read body",
-		})
-
-		return
-	}
-
-	if body.Receiver == 1 || currentUser.ID == 1 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Error": "Attempting to send to or from super admin",
-		})
-
-		return
-	}
-
-
-	var niceThing models.NiceThing
-	initializers.DB.Where("Sender = ? AND Receiver = ?", currentUser.ID, body.Receiver).Find(&niceThing)
-
-	if niceThing.ID == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Error": "Nice Thing does not already exist between these users",
-		})
-
-		return
-	}
-
-	initializers.DB.Model(&niceThing).Update("Body", body.Body)
-
-	c.JSON(200, gin.H{})
-	return
-}
 
 func GetUserNiceThings (c *gin.Context) {
-
-	fmt.Println(c)
-
-	userInf, exist := c.Get("user")
-
-	var _ models.User = userInf.(models.User)
-
-	if !exist {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-
 	var body struct {
 		Receiver int
+		Sender int
 	}
 
 	if c.Bind(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Error": "Failed to read body",
+		})
+
+		return
+	}
+
+	fmt.Printf("GETUSERNICETHING BODY: %+v\n", body)
+
+
+	// Look up requested user
+	var currentUser models.User
+	initializers.DB.First(&currentUser, "id = ?", body.Sender)
+
+	if (!currentUser.Admin) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"Error": "Not admin",
 		})
 
 		return
@@ -227,5 +187,4 @@ func GetUserNiceThings (c *gin.Context) {
 	
 	fmt.Println("retNiceThings:", retNiceThings)
 	c.JSON(200, retNiceThings)	
-	return
 }
